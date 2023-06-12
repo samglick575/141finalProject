@@ -1,0 +1,1179 @@
+---
+title: "Stats 141 Final Project"
+author: "Samuel J Glick"
+date: "2023-05-15"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Abstract:
+
+  In this project we wanted to analyze the cognitive activities of mice while playing a game. They were given a tv screen with differing contrasting lights on the left and right side and required to turn a wheel to indicate which one was brighter. We were given data on the contrast levels of the left and right side as well as the spike rates of multiple neurons in the mouses brain. The sessions all had electrodes placed on different neurons in different brain areas, and the firing rate of each neuron was reported to us in a spikes matrix. Now we were tasked with figuring out how to predict mouse cognitive success based on the variables we were given.
+  
+  To build a model we had to explore the data, and decide on a model to use based on data trends among all the sessions. Three models were built using the multinomial regression, which is an offshoot of the general linear model framework. I tried a model without any spike train data and that yielded only about 66 percent predictive accuracy. The three main models I worked with differed in how the spike trains were treated. For model one the spike train for each attempt was simply summed up into one value which told us the total brain activity for that attempt. The second model summed up the spike data by brain area, so it used brain area activity to try and predict the sucess of the mouse. The third model used each neurons activity to predict the success of the mouse. Since some sessions used many brain areas, and there were hundreds of neurons being examined in each session, I chose to use PCA in models 2 and 3 to reduce the dimensionality of the data.
+  
+  I chose to create an individual model for each session since the spikes data differed session by session in important ways. If the electrodes were placed in more important areas, then one session might have higher brain activity in a correct attempt than another session. To integrate the data, I checked the preformance of my model on each of the 18 trials, and chose the model which preformed the best for all 18 sessions By comparing my model for all 18 sessions I was able to integrate all the data into my model and chose the best model for future testing. 
+  
+  In the end, the model I built was able to predict the success of the mouse with about an 80 percent accuracy. I am pretty proud of that statistic and I will be talking about how I got to that point during this report. In this report I will not be citing many specific numbers and statistics, but instead how different trends lead me to develop the chosen model and data integration in different ways. I will be commenting on mainly graphical trends and supporting my analysis with graphs and less specific number citation. 
+
+#Introduction:
+
+  Our question of interest was what determines how a mouse will preform in the cognitive task? In other words we were looking to examine the factors that effected correct cognition in mice. We wanted to see which brain areas were especially useful in correct cognition as well. We also wanted to see if the mice learned over time. All three of the research questions will be analyzed later on in the report. 
+
+Questions:
+  1. Can we predict correct mouse cognition using brain data.
+  2. Which brain areas were useful in predicting mouse cognition
+  3. Did the mice learn over the course of the sessions or over the course of one session
+  
+  We found that a predictive model could be built with fairly high accuracy to predict mouse cognition. We also found that brain area activity differed on correct and incorrect trials based on graphical analysis, and also model creation. Lastly, it did appear that the mice did exhibit some learning over the course of each session based on the graphical analysis which I will discuss later. 
+  
+  This data came from a report done in 2019 by University of Washington researchers studying predictive cognitive modeling. Nicholas Stienmetz and other researchers form University College London collaborated on this study. 
+  
+  I predicted that a correct model could be made to explain the mice congition. Since the brain controsl cogniton and we were given brain data it makes sense that we can create a correct model from that. Also I predicted that brain area wise activity would differ for a correct and incorrect trial as well. It makes sense that a mouse would have different brain activity on a correct or incorrect trial since I feel that my brain is different on a good day of studying or a bad day of studying.  hypothesized that the mice would learn over time since they were being given a water stimulus upon correct attempts. Since they had the stimulus, I figured that over the course of each session they would get higher accuracy. 
+
+#Background:
+
+The study was done as follows:
+  Four mice were taken and had electrodes placed in different regions of the brain. Each mouse was required to play a cognitive game where they turn a wheel for a water reward. The mouse was given a tv screen with two differing lights. The lights could have equal or unequal contrasts and depending on which was was precieved to be higher contrast, the mouse would turn a wheel to that side (left or right). Upon a correct guess, the mouse was given water as a reward and then the mice would be taken in for multiple sessions of this study. One attempt or trial will be one round of contrast followed by wheel turn followed by reward. One session will be a large number of trials preformed on one day that the mouse would participate in. 
+
+The Data:
+  We were given data on the contrast shown on the screen. We were given the left and right contrast that the mouse saw. We were also given the mouses name and the session number. We were given how the mouse preformed in a feedback type variable. This was 1 for a correct trial or -1 for an incorrect trial. One crucial piece of data was the spike train. The spike train showed us how many electrical spikes each of the neurons tested showed during the 40 millisecond span of each trial. In session one for example, we had 734 neurons spiking over the span of 40 second, and some neurons spiked no times, once, twice, or three times, at each millisecond observed. 
+
+Logistic Regression - GLM:
+  Since we were trying to use data to predict a yes or no outcome (1 or -1), a general linear model would be decided upon at first. This basically meant that I wanted a model that would take in data trends of categorical and numerical data and shoot out a prediction of correct or incorrect. 
+  
+  
+
+#Descriptive/Exploratory Analysis:
+
+Did the mice get smarter as the sessions went along?
+
+See Chunk 2e for Session Analysis
+  I ran a anova using session number as a predictor and feedback type as the outcome, to see if any one session had a statistically significant better preformace. The anova presented a statistically significant p value meaning that the mice did preform better in some sessions than others. My next question was did each of the four mice get smarted over their trials. Based on the 4 charts of the preformance over each mouses trials, its does not appear that any one mouse got smarter over its trials.
+
+Did the mice get smarter during each session?
+Was any one mouse smarter?
+
+See Chunk 2f For Learning During the Session
+  Each graph in 2f is summed up as a sum of the -1 and 1 for the mouse over the course of each session. Theoretically if each -1 and 1 was equally probable and their was no trend, we would see a relatively flat line or a flat trend amongst the 18 trials. As the mouse gets more 1's or correct guesses, the line increases, while -1's will decease the line. For each mouse we can see a general trend of learning during the session. It makes sense that as the mouse recieved the stimulus, it learned how to play the game, just how as humans recieve stimuli and learn how to start habits. There does appear to be trends in how each mouse learns. 
+  Cori: Cori was our smartest mouse with a correct rate of .57 however he does appear to lose focus at times based on the dips in his total learning graph. 
+  Forsman: Forsman was our second smartest mouse with a correct rate of .5, yet he also does appear to lose focus since his graph tends to dip toward the end. Maybe he just got tired as the session went along. 
+  Hench: Hench could not really keep focus, his learning graph is by far the most bumpy. He had a correct rate of only .4.
+  Lederberg: Lederberg had a correct rate of .34 but he appears to learn pretty well, his total learning graphs look pretty straight and up, therefore as time went on, he was consisently getting more and more ones. 
+  To support the mice having different cognitive capabilites, I ran an anova using mouse name as a predictor and feedback as an outcome and it had a statistically significant p value, meaning that at least one mouse had a different average cognitive capability. 
+  
+How did contrast level change the success rate?
+
+See chunks 2a and 2b
+  Contrast definitely did have an effect on the feedback of the mouse. An anova of different patterns of contrast showed that contrast did have a statistically significant effect on feedback. The graphs below highlight some of the trends and how differing contrast levels influenced feedback rate. 
+  
+Ties:
+  For the ties graph, ties, were where the left and right contrast were the same. It appears that the mouse had the highest correct rate when both were blank. Second highest success rate when both were at max capacity. At minimal ties (.25,.25) and (.5,.5), the feedback sucess was around zero. 
+  
+Not Ties:
+  When the left and right contrasts were not tied, it appears that the mouse preformed better at lower contrasts. The mice had success rates above .5 for (left,right) of (0,.25), or (0,.5) which is interesting to note. I chose to look at ties and not ties differently in the data since in the anova of contrast level verus feedback, both left, right and their interactions were statistically significant. 
+
+How did brain area wise activity differ for incorrect and correct trials?
+
+See figure's in 2d, correct, incorrect, and total
+  Brain Area definitely looked different by correct and incorrect trials. For session one for example, firing rate is plotted over time for all 8 brain areas studied. We can see that the colorful graphs show different trends in brain activity for correct and incorrect trials and an incorrect or correct trial has different trends than a general look at trial one. This graphical approach does tell us that there is differences in brain activity for correct or incorrect trials. 
+  To back it up with facts, the predictive model using brain area wise activity to predict feedback had the highest overall percentage for all 18 trials. This means that brain area wise activity (being put into pca for dimension reduction) had some predictive power than just using total summed up brain activity. 
+  
+#Data Integration:
+  Since each session had different brain regions, different amounts of electrodes and different brain areas, I did not think it would be the best to make a general model across all sessions. Instead I would make a model to predict data session wise. Since each session had different characteristics, I chose the session wise approach. My thought process was that if one session had more productive neurons targeted than another, there could be differences in brain activity purely related to the placement of the electrodes, so I did not want to look at the spike train data aggregated over all sessions. 
+  Instead I chose to test my model across all 18 sessions. Whether it was using total amount of spikes in all 40 milisecond in all neurons or breaking it up by brain area or neuron, I tested the model preformance on all 18 sessions which lead to conclusions in the model selection based on using all the data as test and training data to select the best model while still respecting the unique brain activity trends in any one session. 
+  I compared the performance of all three proposed models on all 18 session wise models and that was my data integration component. I basically created a testing function for each 3 models and tested them on all 18 sessions taking note of the predictive power. This allowed me to get 3 model analyze based on all 18 trials which was really useful in chosing my final model. 
+  
+#Predictive Model and Preformance
+For all of my models I used a multinom general linear model to get any nonlinear trends within my numerical data. 
+
+Most Basic Model: Categorical (Contrasts as Factors)
+See 3f
+  I created the most basic model just to see which variables would be significatn to use in the later models. It would appear based on the initial purely categorical glm that only the contrast level and session and trial number were statistically significant factors in predicting feedback. Mouse name was not statistically significatn when looking at the general larger picture. 
+  
+Model One: (Sum up the whole spks Matrix)
+
+See 3h
+  Model One used session and trial number, contrast and its interaction, and the summed up spks matrix as one number to predict feedback. It was a glm as well. Its preformace was about .72 percent accuracy for all 18 trials. This is not amazing however it is a good start. 
+  
+Model Two:
+
+See 3m
+  Model two used the neuron activity summed up by brain area then fed into pca. This would be fed into the multinomial regression and it had an average of .73 correct identification rate for all 18 trials. That was better than just summing up the whole spks matrix. It makes sense since some information would be stored in the brain area wise activity. 
+  
+Model Three:
+
+See 3d
+  For the neuron wise activity put into pca the predictive power did go up from .7304 to .7315 but is that enough to say that using the neuron wise activity was that much better than using the brain area wise activity? I would say no. We added 4 principal components to use the neuron data. For the brain area wise data, we had 5 principal components used for each trial, however for the neuron wise activity we had 9 principal components being used. To explain barely a percent more of of our test data, I would not say that using the neuron wise model was really worth it. Model two was seen to be a happy medium between models 1, 2, and 3 since it balanced complexity with predictive correctedness. 
+
+#Preformance Expected Versus Real Preformance
+  My primary performance metric was the mean of each models correct identification for all 18 trials. Three graphs were plotted for each of the 3 models to show how each model preformed over all 18 trials. That was part of my data integration and was meant to help find a model that could predict any session pretty well. I chose to include these graphs since they are very descriptive. 
+  Model : Mean Prediction Correctness
+  1       .72
+  2       .73
+  3       .731
+
+  Based on these findings, I chose to run the model 2 which is a brain area activity based multinomial model on the test data. When Looking at the predictive power for session one and 18 we would expect Model 2 to predict session 1 at a rate of .8 correctedness and session 18 at a rate of .83 correctedness. When I actually predicted the data from session one and 18 I got a rate of .8 and .78
+  
+  Session Expected(Prediction) Real(Prediction)
+  1        .8                  .8
+  18       .83                 .78
+  
+  The session wise model for session one predicted the test data fairly well, however the sessin wise model for session 18 did not predict the test data as well. With an average correct prediction rate in reality of .79, I am not unhappy with how the model preformed. 
+
+#Discussion
+  I was surprised that the neuron wise model fed into pca did not explain more variance than just brain area. Then again, some neurons could be heavily correlated with eachother since they are in the same brain area. If multiple neurons are correlated by brain area, then a model using all the individual neurons will not explain that much more variance than will brain area. The differences in brain area noticed in exploratory analysis (Brain Area Section) showed me that since brain area wise activity differes in successful and failure trials, so therefore it would be useful to include brain area wise activity. Surprisingly enough, simply summing up the whole spks matrix actually explained a lot of the variance. A model that was not that complex, was able to explain a surprisingly large amount of the variance in the data. No statistically significant relationship was found between predictive power and trial length in the session. In other words it predicted short sessions (fewer trials) just as well as longer sessions (more trials). I also checked how the model preformed in terms of how many brain areas there were. There was no correlation as well. 
+  Simplicity worked about as well as complexity here. As the models got more and more complex, they were not predicting the test data that much better. PCA definitely helped make some of the complex models happen, however it may have also lead to overfitting. 
+  The scree plot shows just about how many principal components would be needed to predict y amount of variance. Since I was using one model on all 18 trials, a constant number of principal components might not have been the right approach. Maybe since I was making individual models for each session, I should have added an optimization loop for each session that would chose an optimal number of principal components for that session that would explain the maximum amount of variance for that session.
+  
+#Acknowledgements 
+  I would like to thank statology for the large amount of help it provided me. Our friends at statology keep data scientists going just like redbull. From helping me find code to helping me interpret new models, I would like to thank statology so much. 
+  I would like my ta, Chen Qian for his discussions. They were honestly really helpful and I would probably still be lost right now without him
+  Lastly I would like to thank all the mice that died to make this data happen. 
+  Animal testing is costly not just financially but also emotionally. When you have animals dying to help give us data, it is important that we bring meaning to their lives by getting the most we can out of the data that they gave us. To Cori, Hench, Forssmann, and Lederberg, may your lives bring meaning to others by the data you gave me. 
+  Peace and best wishes to all of you!
+  It was a pleasure to take this class
+  -Sam Glick 
+  
+#Other
+##1a Unpackaging
+
+#Exploratory
+##2a Contrast and Sucess (All Contrast & Ties)
+##2b Contrast and Success (For Not Ties)
+##2c Function to Get Brain Area Trends by trial type (Success or Failure)
+##2d Brain Area By success. 
+##2e Mouse Name and Session Number (Learning Over Session)
+##2f Mouse learning over session and over trials. Did the stimulus work? 
+
+#Predictive Model 
+##3a Build the Simple Data Frame to start creating a model
+##3b Spike Train Function
+##3c Summed activity by neuron data frame
+##3d Predicitve Model (PCA and Neuron Activity)
+##3e How many PCA's will predict all trials the best 
+##3f Simplest Case Model With the data frame from 3a, using categorical data to predict preformance
+##3g Session Wise firing rate function
+##3h Prediciton Model GLM with summed up brain activity
+##3i Predictive power analysis of my best model by small or large sessions
+##3(j-m) Building a Model by brain area wise activity for each attempt, and testing it. I did not follow this model through in the end. 
+##3n Graphs and full code that helped me write the predictive model and analyze #it. 
+
+# Four Data Integration
+##4a Comparing Neuron Wise PCA model by all trials
+##4b Comparing Chosen predictive Model success over short and long trials
+##(for all trials)
+
+# Five Testing and Analysis
+## 5a The testing block
+
+
+#Abstract
+During the study on mouse cognition done by 
+
+# 1a Unpackagine the data into 18 Sessions
+```{r,echo=FALSE}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+session=list()
+for(i in 1:18){
+  session[[i]]=readRDS(paste('session',i,'.rds',sep=''))
+}
+```
+
+#3a Predictive Model - Building the simple model to begin building a predictive modle.  Making a dataframe of just the categorical variables
+This is part of data integration and I will be using this dataset to analyze some trends across all the trials. 
+##Constructing the left side of the data set.
+###Grabbing the data for the left side of the data frame
+```{r,echo=FALSE}
+names<-list()
+feeds<-list()
+lefts<-list()
+rights<-list()
+trialsJ<-list()
+sessionsI<-list()
+leftFrame<-data.frame()
+for(i in 1:18){
+  nayme<-session[[i]]$mouse_name
+  jay<-length(session[[i]]$feedback_type)
+  for(j in 1:jay){
+    trialy<-j
+    feids<-session[[i]]$feedback_type[j]
+    letfs<-session[[i]]$contrast_left[j]
+    wrights<-session[[i]]$contrast_right[j]
+         trialsJ<-rbind(trialsJ, j)
+         sessionsI<-rbind(sessionsI, i)
+         names<-rbind(names,nayme)  
+         feeds<-rbind(feids, feeds)
+         lefts<-rbind(letfs, lefts)
+         rights<-rbind(wrights, rights)
+  }
+}
+combo<-unlist(rights)+unlist(lefts)
+leftFrame<-data.frame(unlist(names),unlist(lefts),unlist(rights),unlist(feeds),unlist(sessionsI),unlist(trialsJ),unlist(combo))
+save(leftFrame, file = "leftFrame.rdata")
+```
+
+
+# 3b Predictive Model - Spike Trains (Did not end up doing much with this function since it took a really long time to run)
+I wanted to create a function to return the firing rate of each neuron during each trial. This function returns the firing rate aggregated by brain area for all any session or trial or brain area. This can be used to compare trends in brain area activity by correct or incorrect trials. 
+```{r,echo=FALSE}
+percRetTriAtt<-function(ses, att, area){
+  attemptTemp<-data.frame(session[[ses]]$spks[att])
+  mapTemp<-session[[ses]]$brain_area
+  mapUniqueTemp<-unique(session[[ses]]$brain_area)
+  indicesTemp<-which(mapTemp %in% mapUniqueTemp[area])
+  areaSpksTemp<-attemptTemp[indicesTemp,]
+  totalAreaPotentialTemp<-length(areaSpksTemp[,1])
+  areaStimulationTemp<-colSums(areaSpksTemp)
+  percStimulationAreaAttemptTrialTemp<-data.frame(areaStimulationTemp/totalAreaPotentialTemp)
+  #plot(c(1:40),percStimulationAreaAttemptTrialTemp[,1])
+  return(percStimulationAreaAttemptTrialTemp[,1])
+}
+```
+
+
+
+Code Chunks 2 will all be used as references when I talk about the exploratory analysis. 
+#2a Exploratory - Contrast and Success - Does the Contrast Change the Feedback Percentage
+Based on an anova of the different levels of contrast the mice experiences with the interaction model b being used, it is clear the the contrast in front of the mouse did have a statistically significant effect on the mouses performance in the game. The right contrast was more significant than the left contrast, yet the interactions of the left and right contrast was significant. This made me consider plotting the mean success (1 being perfect and -1 being completely wrong) for the different contrast levels. Maybe at really high contrast levels the mice got overstimulated and moved incorrecty and maybe at certain contrasts the mice preformed better. 
+```{r, echo=FALSE, fig.height = 4, fig.width = 5, fig.align = "center"}
+library(dplyr)
+left<-unlist(leftFrame$unlist.lefts.)
+right<-unlist(leftFrame$unlist.rights.)
+feed<-unlist(leftFrame$unlist.feeds.)
+combo<-left+right
+contrast.lm<-lm(leftFrame$unlist.feeds.~leftFrame$unlist.lefts.+leftFrame$unlist.rights.+leftFrame$unlist.lefts.*leftFrame$unlist.rights.)
+summary(contrast.lm)
+contrastVariable<-left+right
+contrastVariable<-sort(unique(left+right))
+contrastPercentage<-list(0:length(unique(contrastVariable)))
+
+for(i in 1:length(unique(contrastVariable))){
+   temp<-leftFrame[which(combo == unique(contrastVariable)[i]),]  
+   #print(temp)
+   meanTemp<-mean(unlist(temp$unlist.feeds.))
+   print(meanTemp)
+   contrastPercentage[i]<-meanTemp
+}
+contrastData<-data.frame(contrastVariable, contrastPercentage)
+plot(contrastVariable,contrastPercentage, ylab = "Feedback Success for all pairs left+right", xlab="Feedback Combo", main = "Contrast Level vs Feedback Success")
+
+#
+individuals<-unique(unlist(lefts))
+contrastTies<-sort(individuals)
+tiePercentage<-list()
+
+for(i in 1:length(contrastTies)){
+  tempIndices <- leftFrame[which((unlist(leftFrame$unlist.rights.)==unlist(leftFrame$unlist.lefts.))),]
+  tempIndices<-tempIndices[which(unlist(tempIndices$unlist.lefts.)==contrastTies[i]),]
+  tiePercentage[i]<-mean(unlist(tempIndices$unlist.feeds.))
+  # print(tempIndices)
+  # head(tempIndices)
+  # temp<-leftFrame[tempIndices,]
+  # head(temp)
+  # tiePercentage[i]<-mean(temp$feeds)
+}
+plot(contrastTies, tiePercentage, main = "Same Contrast Left and Right", xlab="Contrast Level",ylab="Mean Feedback")
+```
+
+# 3c Predictive Model: Data Frame with summed activity by neuron:
+I made this data frame returning function to give us the total spikes of each neuron in each trial, and then each neuron's activity would be fed in to PCA to decrease the dimensions of the data and then each neuron can contribite meaningful information to our predictive model. 
+```{r,echo=FALSE}
+giveMeNeuronFrame<-function(sessionID){
+sessionWun<-session[[sessionID]]
+neuronFrame<-data.frame()
+for(i in 1:length(sessionWun$feedback_type)){
+  spikeTemp<-sessionWun$spks[[i]]
+  neuronsTrialI<-rowSums(spikeTemp)
+  neuronFrame<-rbind(neuronFrame,neuronsTrialI)
+}
+return(neuronFrame)
+}
+giveMeContFeedFrame<-function(sessionID){
+  sessionWun<-session[[sessionID]]
+  contFeedFrame<-data.frame()
+  left<-list()
+  right<-list()
+  rl<-list()
+  feed<-list()
+  for(i in 1:length(sessionWun$feedback_type)){
+    left[i]<-sessionWun$contrast_left[i]
+    right[i]<-sessionWun$contrast_right[i]
+    feed[i]<-sessionWun$feedback_type[i]
+  }
+  left<-unlist(left)
+  right<-unlist(right)
+  rl<-left*right
+  feed<-unlist(feed)
+  contFeedFrame<-data.frame(left,right,rl,feed)
+  return(contFeedFrame)
+}
+giveMeFrame<-function(sessionID){
+  lF<-giveMeNeuronFrame(sessionID)
+  rF<-giveMeContFeedFrame(sessionID)
+  whole<-data.frame(lF,rF)
+  return(whole)
+}
+```
+
+# 3d Predictive Model - Model by individual Neuron Wise Activity 
+```{r,echo=FALSE}
+missy<-function(sessionID){
+library('corrr')
+library(ggcorrplot)
+library(FactoMineR)
+library(psych)
+library(devtools)
+library(ggbiplot)
+library(nnet)
+library(ggplot2)
+
+# install.packages("corrr")
+# install.packages("ggcorrplot")
+ #install.packages("FactoMineR")
+#install.packages("psych")
+  
+#Give me Frame or Give Me Neuron Frame?
+sessionNthFrameTotal<-giveMeFrame(sessionID)
+
+corrMatToFrame <- cor(sessionNthFrameTotal)
+#ggcorrplot(corrMatToFrame)
+
+set.seed(111)
+ind <- sample(2, nrow(sessionNthFrameTotal),
+              replace = TRUE,
+              prob = c(0.8, 0.2))
+training <- data.frame(sessionNthFrameTotal[ind==1,])
+testing <- data.frame(sessionNthFrameTotal[ind==2,])
+# pairs.panels(training[,-5],
+#              gap = 0,
+#              bg = c("red", "yellow", "blue")[training$feedList],
+#              pch=21)
+pc<-prcomp(training[,-length(sessionNthFrameTotal[1,])])
+#print(pc)
+#summary(pc)
+#install.packages("devtools")
+#install_github("vqv/ggbiplot")
+# g<-ggbiplot(pc,
+#               obs.scale = 1,
+#               var.scale = 1,
+#               groups = training$feedList,
+#               ellipse = TRUE,
+#               circle = TRUE,
+#               ellipse.prob = 0.68)
+# g
+# g <- g + scale_color_discrete(name = '')
+# g <- g + theme(legend.direction = 'horizontal',
+#                legend.position = 'top')
+trg <- predict(pc, training)
+trg <- data.frame(trg, training[length(sessionNthFrameTotal[1,])])
+tst <- predict(pc, testing)
+tst <- data.frame(tst, testing[length(sessionNthFrameTotal[1,])])
+#install.packages("nnet")
+var_explained <- pc$sdev^2 / sum(pc$sdev^2)
+
+#create scree plot
+
+ # qplot(c(1:length(var_explained)), var_explained) + 
+ #   geom_line() + 
+ #   xlab("Principal Component") + 
+ #   ylab("Variance Explained") +
+ #   ggtitle("Scree Plot") +
+ #   ylim(0, 1)
+
+multinom <- multinom(feed~PC1+PC2+PC3+PC4+PC5+PC6+PC7+PC8+PC9+PC10, data = trg)
+# knn<-knn(trg,tst,tst$feedList,k=1)
+# lda()
+#summary(mymodel)
+p1 <- predict(multinom, tst)
+tab1 <- table(p1, tst$feed)
+#tab1
+newMisclassification<-1-sum(diag(tab1))/sum(tab1)
+#print(newMisclassification)
+return(newMisclassification)
+}
+neuronPredict<-list()
+for(i in 1:18){
+  neuronPredict[i]<-1-missy(i)
+}
+neuronPredict<-unlist(neuronPredict)
+plot(1:18,neuronPredict)
+mean(neuronPredict)
+```
+
+#3e/4a Predictive Model/Data Integration - How many PC's will best predict the total data set. 
+# ```{r}
+# # pc9<-list()
+# # for(i in 1:18){
+# #   pc9[i]<-missy(i)
+# # }
+#     pc7
+# mean(unlist(pc7))
+# mean(unlist(pc8))
+# mean(unlist(pc9))
+# #9 Principle components is the optimal amount of components in terms of data integration, as I have set up my model so far
+# mean(unlist(pc10))
+# mean(unlist(pc11))
+# mean(unlist(pc12))
+# pcs<-c(mean(unlist(pc7)),mean(unlist(pc8)),mean(unlist(pc9)),mean(unlist(pc10)),mean(unlist(pc11)),mean(unlist(pc12)))
+# 
+# unlist(pc9)
+# print("Average Preformace By Number of Principle Components by the all the sessions")
+# pcs
+# ```
+#2b Exploratory - Contrast and Mean Success Graph for attempts where left contrast did not equal right contrast. 
+```{r, echo =FALSE}
+diffs<-left!=right
+indices<-leftFrame[diffs,]
+diffsX<-c(.25,.5,.75,1,1.25,1.5)
+diffsY<-c()
+for( i in 1:length(diffsX)){
+  differentTrialsTemp <- leftFrame[which(unlist(leftFrame$unlist.lefts.) != leftFrame$unlist.rights.),]
+  temporaryTrials<-differentTrialsTemp[which(unlist(leftFrame$unlist.combo.)==diffsX[i]),]
+  diffsY[i]<-mean(temporaryTrials$unlist.feeds., na.rm=TRUE)
+}
+plot(diffsX,diffsY, main = "Unique Pairs of Contrast Left != Right", ylab = "Mean Feedback",xlab="Contrast Levels")
+```
+
+#3f Predictive Model - Simplest Case - A glm model with our base variables, no spike train data. 
+I wanted to see how much variance I could explain without the spike trains since I was having trouble working with them at first. 
+```{r,echo=FALSE}
+feed<-leftFrame$unlist.feeds.
+right<-leftFrame$unlist.rights.
+left<-leftFrame$unlist.lefts.
+names<-leftFrame$unlist.names.
+trials<-leftFrame$unlist.trialsJ.
+ses<-leftFrame$unlist.sessionsI.
+#Summary of first predictive model - Simplest Case - Linear Model
+categorical.lm<-glm(feed~right+left+right*left+names+trials+ses)
+summary(categorical.lm)
+```
+
+# 2c Exploratory - Function to get Brain Area Trends by Correct or Incorrect Trials or just in general for a Session.
+I wanted to be able to see if brain area wise activity changes from successful or failure trials, and compare that to brain activity summed up for the whole session. These functions allow the data frames to be created which will be fed into the graphs so I can show the trends. 
+```{r,echo=FALSE}
+spikeOne<-session[[1]]$spks[[1]]
+spikeTwo<-session[[1]]$spks[[2]]
+spikeThr<-session[[1]]$spks[[3]]
+
+
+
+giveMeSpikeR8forSessionSucess <- function(ID,ans){
+   # Get the firing rate data frame
+   currentSession <- session[[ID]]
+   indexxxTemp<-which(currentSession$feedback_type == ans)
+   firing<-currentSession$spks[[indexxxTemp[1]]]
+   for(i in 2:length(indexxxTemp)){
+     second<-session[[ID]]$spks[[indexxxTemp[i]]]
+     firing<-firing+second
+   }
+   area<-currentSession$brain_area
+   
+   
+   areaFrame<-list()
+   timeFrame<-list()
+   trainFrame<-list()
+   oneTime<-c(1:40)
+   for(i in 1:length(firing[,1])){
+     areaTemp<-area[i]
+     trainTemp<-firing[i,]
+     for(j in 1:length(firing[1,])){
+       areaFrame<-append(areaFrame, areaTemp)
+       timeFrame<-append(timeFrame, j)
+     }
+     trainFrame<-append(trainFrame, trainTemp)
+   }
+   wholeFrame<-data.frame(unlist(areaFrame),unlist(timeFrame),unlist(trainFrame))
+   colnames(wholeFrame)<-c("Area","Time","r8")
+   return(wholeFrame)
+   
+}
+```
+
+#3g Predictive - Session Wise Firing Rate
+I chose to sum up the firing rate of the whole spikes matrix to get a useful data value for each trial within the session that its in. 
+```{r,echo=FALSE}
+giveMeSpikeR8forSession <- function(ID){
+   # Get the firing rate data frame
+   currentSession <- session[[ID]]
+   firing<-currentSession$spks[[1]]
+   for(i in 2:length(currentSession$feedback_type)){
+     second<-session[[ID]]$spks[[i]]
+     firing<-firing+second
+   }
+   area<-currentSession$brain_area
+   
+   
+   areaFrame<-list()
+   timeFrame<-list()
+   trainFrame<-list()
+   oneTime<-c(1:40)
+   for(i in 1:length(firing[,1])){
+     areaTemp<-area[i]
+     trainTemp<-firing[i,]
+     for(j in 1:length(firing[1,])){
+       areaFrame<-append(areaFrame, areaTemp)
+       timeFrame<-append(timeFrame, j)
+     }
+     trainFrame<-append(trainFrame, trainTemp)
+   }
+   wholeFrame<-data.frame(unlist(areaFrame),unlist(timeFrame),unlist(trainFrame))
+   colnames(wholeFrame)<-c("Area","Time","r8")
+   return(wholeFrame)
+   
+}
+```
+
+
+
+
+#2d Exploratory - Brain Activity By Feedback Graphs
+```{r,echo=FALSE}
+library(ggplot2)
+
+oneCor<-giveMeSpikeR8forSessionSucess(1,1)
+oneInc<-giveMeSpikeR8forSessionSucess(1,-1)
+oneTot<-giveMeSpikeR8forSession(1)
+
+ggplot(data = oneCor, aes(x = Time, y= r8, color =Area,alpha = .1)) + geom_smooth(aes(group = Area)) + xlab("Time") + ylab("Brain Activity") + ggtitle("Brain Activty Over Time (Correct)")
+ggplot(data = oneInc, aes(x = Time, y= r8, color =Area,alpha = .1)) + geom_smooth(aes(group = Area)) + xlab("Time") + ylab("Brain Activity") + ggtitle("Brain Activty Over Time (Incorrect)")
+ggplot(data = oneTot, aes(x=Time, y = r8, color=Area,alpha=.1)) + geom_smooth(aes(group=Area)) + xlab("Time") + ylab("Brain Activity") + ggtitle("Brain Activty Over Time (All)")
+```
+
+# 2e: Exploratory - Success By Mouse Name and by session-, part of how I chose to build my full predictive model
+It would appear that the mice did have noticable differences in intelligence. based on a lm of mouse name effecting the feedback, there were significant p values for all 4 mice, indicating that the mice had differences in intelligence. Because of this, I chose to preform my model by each individual mouse, using forsmanns data to forsmanna and coris data to predict cori. Since a few of the sessions did have statistically significant differences in sucess, I chose to test by models on a session by session and session by mouse basis. 
+
+Cori's 1-3
+Hench 8-11
+Fors 4-7
+Leder 12-18
+```{r,echo=FALSE}
+boxplot(leftFrame$unlist.feeds.~leftFrame$unlist.names.)
+#Did any one mouse preform better
+means<-aggregate(leftFrame$unlist.feeds., list(leftFrame$unlist.names.), FUN=mean)
+means
+names<-c("cori","forsmann","hench","lederberg")
+namesLm<-lm(leftFrame$unlist.feeds.~leftFrame$unlist.names.)
+summary(namesLm)
+
+# Mean Success By Session Number
+sessionMeans<-aggregate(leftFrame$unlist.feeds., list(leftFrame$unlist.sessionsI.), FUN=mean)
+sessionMeans
+#Summary of preformace by Session as Indicator
+sessionsLm<-lm(leftFrame$unlist.feeds.~as.factor(leftFrame$unlist.sessionsI.))
+summary(sessionsLm)
+
+meanSesh<-aggregate(leftFrame$unlist.feeds., list(leftFrame$unlist.sessionsI.), FUN=mean)
+meanSesh
+
+coris<-meanSesh[1:3,]
+fors<-meanSesh[4:7,]
+hench<-meanSesh[8:11,]
+leder<-meanSesh[12:18,]
+
+coris
+fors
+hench
+leder
+```
+
+#3h Prediction Model One - Simple GLM with total amount of brain activity over the 40 seconds, and contrast data. 
+A predictive model using the contrast and the left/right interaction, the total spike number to predict the correct or incorrectness. I Used testing by splitting the data and I have got a percentage success weighted by the number of trials per session of .71. That is pretty solid by just using 4 values. 
+```{r,echo=FALSE}
+prediction<-function(sessionNumber){
+  curSesh<-session[[sessionNumber]]
+  numAttempt<-length(curSesh$feedback_type)
+  spikes<-curSesh$spks
+  spikeList<-list()
+  feedList<-list()
+  leftList<-list()
+  rightList<-list()
+  for(i in 1:numAttempt){
+    feedList<-rbind(curSesh$feedback_type[i],feedList)
+    leftList<-rbind(curSesh$contrast_left[i],leftList)
+    rightList<-rbind(curSesh$contrast_right[i],rightList)
+    currentSpike<-spikes[[i]]
+    totalSpikeForTrial<-sum(rowSums(currentSpike))
+    spikeList<-rbind(totalSpikeForTrial,spikeList)
+  }
+  
+  feed<-unlist(feedList)
+  left<-unlist(leftList)
+  right<-unlist(rightList)
+  spike<-unlist(spikeList)
+  contCoef<-left*right
+  
+  start<-round(length(feed)*.8)
+  testStart<-start+1
+  end<-length(feed)
+  
+  sessionFrame<-data.frame(feed,left,right,spike,contCoef)
+  trainFrame<-sessionFrame[1:start,]
+  testFrame<-sessionFrame[testStart:end,]
+  
+  sessionGlm<-glm(data=trainFrame,feed~left+right+spike+contCoef)
+  
+  sessionPrediction<-predict(sessionGlm,testFrame,type="response")
+  predictionFrame<-data.frame(sessionPrediction)
+  
+  one<-which(predictionFrame>0)
+  negOne<-which(predictionFrame<0)
+  zero<-which(predictionFrame==0)
+  newSessionPrediction<-list()
+  
+  newSessionPrediction[one]=1
+  newSessionPrediction[negOne]=-1
+  newSessionPrediction<-unlist(newSessionPrediction)
+  actual<-testFrame$feed
+  correct<-which(actual==newSessionPrediction)
+  percentage<-length(correct)/length(actual)
+  return(percentage)
+}
+predictionTime<-list()
+for(i in 1:18){
+  predictionTime[i]<-prediction(i)
+}
+plot(1:18,predictionTime)
+mean(unlist(predictionTime))
+```
+
+
+# 3i/4b Predictive Model/Data Integration - Analysis of Results - Analysis of the predictive power of my model by session, it would appear that. 
+I wanted to see if the success of my predictive model was different for trials with a lot of attempts or for shorter trials. I plotted my predictive power or the 1-misclassification rate over the number of attempts in each trial to  see if any trends existed. I also preformed a linear model regression to see if there was any statistically significant effects, but session size, but there was not. 
+
+For Data Integration, I chose to create an individual model by session, but then compare my accuracy across all the sessions to see how my model preformed. I chose to use all the data to see how my session wise model preformed. This meant that if my model predicted some sessions better than others I could analyze why. When trying to create a large model across all the sessions, I saw confounding errors that would prevent my model from being predictively powerful. I wanted to use the spike data to come to conclusions by trial about the feedback, but since some sessions had the electrodes placed in less significant regions, that would mean that my model would predict some sessions better than others, so I chose to keep each session seperate when building my model, but then test all the data together.
+
+```{r,echo=FALSE}
+predictionSuccessByTrial<-list()
+numTrials<-list()
+for(i in 1:18){
+  predictionSuccessByTrial[i]<-prediction(i)
+  numTrials[i]<-length(session[[i]]$feedback_type)
+  
+}
+predictionSuccessByTrial<-unlist(predictionSuccessByTrial)
+numTrials<-unlist(numTrials)
+weightedAvg<-(predictionSuccessByTrial*numTrials)
+meanPredictivePowerOfMyModel<-mean(predictionSuccessByTrial)
+meanPredictivePowerOfMyModelWeightedAvgByNumTrials<-sum(weightedAvg)/sum(numTrials)
+plot(numTrials,predictionSuccessByTrial,main="Predictive Power Vs Number of Trials",xlab="Number of Trials",ylab="Correct Identification Rate (By Chosen Model (Brain area Model))")
+powerVsNumTrials<-lm(predictionSuccessByTrial~numTrials)
+summary(powerVsNumTrials)
+mean(predictionSuccessByTrial)
+numBrainArea<-list()
+for(i in 1:18){
+  numBrainArea[i]<-length(unique(session[[i]]$brain_area))
+}
+plot(numBrainArea, predictionSuccessByTrial)
+numAreaslm<-lm(predictionSuccessByTrial~unlist(numBrainArea))
+summary(numAreaslm)
+```
+#3j Predictive Model - Brain Area - New Model With Each Brain Area
+Trying a Model With each Unique Brain Area instead of just by the total number of spikes by session and trial 
+```{r,echo=FALSE}
+uniqueAreas<-list()
+uniqueLength<-list()
+numElectrodes<-list()
+for(i in 1:18){
+  tempArea<-unlist(unique(session[[i]]$brain_area))
+  uniqueAreas[[i]]<-tempArea
+  uniqueLength[i]<-length(tempArea)
+  numElectrodes[i]<-length(session[[i]]$spks[[1]][,1])
+}
+uniqueLength<-unlist(uniqueLength)
+# print(uniqueAreas)
+# print(uniqueLength)
+```
+#3k Predicitive Model - Create The Summed Up Brain Area Activity 
+I summed up the spikes of each neuron during each attempt, by brain area and by session. I did not want to just use the total number of spikes or a percentage of total neurons over time that were activated, since the sessions all had electrodes placed in different neurons in different areas. Maybe session one would have the electrodes places on really cognitively important neurons, but session three had the electrodes placed on less cognitively important neurons. This would mean that looking at percentage activation would not predict all sessions with the same accuracy. 
+```{r,echo=FALSE}
+brainAreaFrameForPCA<-function(ID){
+  currentSession<-session[[ID]]
+brainAreas<-currentSession$brain_area
+spikes<-currentSession$spks
+spikeOne<-spikes[[1]]
+numElec<-length(spikeOne[,1])
+rowSums<-list()
+uniqueBrainAreas<-unique(brainAreas)
+
+firstVect<-0*c(1:length(numElec))
+sessionFrame<-data.frame(firstVect)
+
+for(i in 1:length(currentSession$feedback_type)){
+sessionIsums<-list()
+for(j in 1:numElec){
+  sessionIsums[j]<-sum(currentSession$spks[[i]][j,])
+}
+sessionIsums<-data.frame(unlist(sessionIsums))
+sessionFrame<-cbind(sessionFrame,sessionIsums)
+}
+
+firstNewVect<-0*c(1:length(uniqueBrainAreas))
+newFrameByRegion<-data.frame(firstNewVect)
+indexesList<-list()
+
+for(i in 1:length(uniqueBrainAreas)){
+  indexTemp<-which(unlist(uniqueBrainAreas[i])==brainAreas)
+  indexesList[[i]]<-indexTemp
+}
+sessionFrame<-sessionFrame[,2:length(sessionFrame[1,])]
+
+newFrameByRegion<-data.frame(firstNewVect)
+for(j in 1:length(currentSession$feedback_type)){
+nthNewVect<-list()
+for(i in 1:length(uniqueBrainAreas)){
+  nthNewVect[i]<-sum(sessionFrame[,j][unlist(indexesList[[i]])])
+}
+nthNewVect<-unlist(nthNewVect)
+newFrameByRegion<-cbind(newFrameByRegion,nthNewVect)
+}
+newFrameByRegion<-newFrameByRegion[,2:length(newFrameByRegion[1,])]
+newFrameByRegion<-t(newFrameByRegion)
+names(newFrameByRegion)<-unique(brainAreas)
+return(newFrameByRegion)
+}
+```
+
+#3l Predictive Model - Building a DataFrame by Brain Area to put into PCA
+I summed up the brain activity in each trial by session by brain area. Then I used PCA to determine how many variables would be enough to explain the variance within the data. Say multiple brain areas were correlated with one another, then PCA would help reduce the dimensions of our data. 
+```{r,echo=FALSE}
+wholeDataFrameForPCA<-function(ID){
+currentSession<-session[[ID]]
+brainAreas<-currentSession$brain_area
+spikes<-currentSession$spks
+spikeOne<-spikes[[1]]
+numElec<-length(spikeOne[,1])
+rowSums<-list()
+uniqueBrainAreas<-unique(brainAreas)
+
+firstVect<-0*c(1:length(numElec))
+sessionFrame<-data.frame(firstVect)
+
+for(i in 1:length(currentSession$feedback_type)){
+sessionIsums<-list()
+for(j in 1:numElec){
+  sessionIsums[j]<-sum(currentSession$spks[[i]][j,])
+}
+sessionIsums<-data.frame(unlist(sessionIsums))
+sessionFrame<-cbind(sessionFrame,sessionIsums)
+}
+
+firstNewVect<-0*c(1:length(uniqueBrainAreas))
+newFrameByRegion<-data.frame(firstNewVect)
+indexesList<-list()
+
+for(i in 1:length(uniqueBrainAreas)){
+  indexTemp<-which(unlist(uniqueBrainAreas[i])==brainAreas)
+  indexesList[[i]]<-indexTemp
+}
+sessionFrame<-sessionFrame[,2:length(sessionFrame[1,])]
+
+newFrameByRegion<-data.frame(firstNewVect)
+for(j in 1:length(currentSession$feedback_type)){
+nthNewVect<-list()
+for(i in 1:length(uniqueBrainAreas)){
+  nthNewVect[i]<-sum(sessionFrame[,j][unlist(indexesList[[i]])])
+}
+nthNewVect<-unlist(nthNewVect)
+newFrameByRegion<-cbind(newFrameByRegion,nthNewVect)
+}
+newFrameByRegion<-newFrameByRegion[,2:length(newFrameByRegion[1,])]
+newFrameByRegion<-t(newFrameByRegion)
+names(newFrameByRegion)<-unique(brainAreas)
+
+rightCont<-list()
+leftCont<-list()
+feedList<-list()
+for(i in 1:length(currentSession$feedback_type)){
+  rightCont[i]<-currentSession$contrast_right[i]
+  leftCont[i]<-currentSession$contrast_left[i]
+  feedList[i]<-currentSession$feedback_type[i]
+}
+rightCont<-unlist(rightCont)
+leftCont<-unlist(leftCont)
+contCoef<-rightCont*leftCont
+feedList<-unlist(feedList)
+previousFrame<-data.frame(rightCont,leftCont,contCoef,feedList)
+
+colnames(newFrameByRegion)<-unique(brainAreas)
+head(newFrameByRegion)
+totalNewFrame<-cbind(newFrameByRegion,previousFrame)
+head(totalNewFrame)
+return(totalNewFrame)}
+```
+
+
+#3m Predictive Model-PCA algorithm and then using the multinomial linear regresion. Graphs Surpressed 
+Step One for a model: Get the PCA
+Step Two put pca into different models
+step 3 compare model preformance for all 18 trials with a testing algorithm
+```{r,echo=FALSE}
+x<-function(ID){
+library('corrr')
+library(ggcorrplot)
+library(FactoMineR)
+library(psych)
+library(devtools)
+library(ggbiplot)
+library(nnet)
+library(ggplot2)
+
+# install.packages("corrr")
+#install.packages("ggcorrplot")
+ #install.packages("FactoMineR")
+#install.packages("psych")
+sessionNthFrameTotal<-data.frame(wholeDataFrameForPCA(ID))
+sessionNthFrameTotal<-scale(sessionNthFrameTotal)
+
+corrMatToFrame <- cor(sessionNthFrameTotal)
+#ggcorrplot(corrMatToFrame)
+
+set.seed(111)
+ind <- sample(2, nrow(sessionNthFrameTotal),
+              replace = TRUE,
+              prob = c(0.8, 0.2))
+training <- data.frame(sessionNthFrameTotal[ind==1,])
+testing <- data.frame(sessionNthFrameTotal[ind==2,])
+# pairs.panels(training[,-5],
+#              gap = 0,
+#              bg = c("red", "yellow", "blue")[training$feedList],
+#              pch=21)
+pc<-prcomp(training[,-length(sessionNthFrameTotal[1,])])
+#print(pc)
+#summary(pc)
+#install.packages("devtools")
+#install_github("vqv/ggbiplot")
+# g<-ggbiplot(pc,
+#               obs.scale = 1,
+#               var.scale = 1,
+#               groups = training$feedList,
+#               ellipse = TRUE,
+#               circle = TRUE,
+#               ellipse.prob = 0.68)
+# g
+# g <- g + scale_color_discrete(name = '')
+# g <- g + theme(legend.direction = 'horizontal',
+#                legend.position = 'top')
+trg <- predict(pc, training)
+trg <- data.frame(trg, training[length(sessionNthFrameTotal[1,])])
+tst <- predict(pc, testing)
+tst <- data.frame(tst, testing[length(sessionNthFrameTotal[1,])])
+#install.packages("nnet")
+var_explained = pc$sdev^2 / sum(pc$sdev^2)
+
+#create scree plot
+
+# qplot(c(1:length(var_explained)), var_explained) + 
+#   geom_line() + 
+#   xlab("Principal Component") + 
+#   ylab("Variance Explained") +
+#   ggtitle("Scree Plot") +
+#   ylim(0, 1)
+
+multinom <- multinom(feedList~PC1+PC2+PC3+PC4+PC5, data = trg)
+# glm<-glm(feedList~PC1+PC2+PC3+PC4+PC5+PC6+PC7, data = trg)
+# knn<-knn(trg,tst,tst$feedList,k=1)
+# lda()
+#summary(mymodel)
+p1 <- predict(multinom, tst)
+tab1 <- table(p1, tst$feedList)
+tab1
+newMisclassification<-1-sum(diag(tab1))/sum(tab1)
+#print(newMisclassification)
+return(newMisclassification)}
+brainPrediction<-list()
+for(i in 1:18){
+  brainPrediction[i]<-x(i)
+}
+plot(1:18,1-unlist(brainPrediction))
+mean(1-unlist(brainPrediction))
+```
+
+#3n Predictive Model - Graphs and Full Code 
+Graphs which helped me understand and develop my predictive Model 
+
+```{r,echo=FALSE}
+library('corrr')
+library(ggcorrplot)
+library(FactoMineR)
+library(psych)
+library(devtools)
+library(ggbiplot)
+library(nnet)
+library(ggplot2)
+
+# install.packages("corrr")
+#install.packages("ggcorrplot")
+ #install.packages("FactoMineR")
+#install.packages("psych")
+sessionNthFrameTotal<-data.frame(wholeDataFrameForPCA(1))
+sessionNthFrameTotal<-scale(sessionNthFrameTotal)
+
+corrMatToFrame <- cor(sessionNthFrameTotal)
+ggcorrplot(corrMatToFrame)
+
+set.seed(111)
+ind <- sample(2, nrow(sessionNthFrameTotal),
+              replace = TRUE,
+              prob = c(0.8, 0.2))
+training <- data.frame(sessionNthFrameTotal[ind==1,])
+testing <- data.frame(sessionNthFrameTotal[ind==2,])
+ pairs.panels(training[,-5],
+              gap = 0,
+              bg = c("red", "yellow", "blue")[training$feedList],
+              pch=21)
+pc<-prcomp(training[,-length(sessionNthFrameTotal[1,])])
+print(pc)
+summary(pc)
+install.packages("devtools")
+install_github("vqv/ggbiplot")
+ g<-ggbiplot(pc,
+               obs.scale = 1,
+               var.scale = 1,
+               groups = training$feedList,
+               ellipse = TRUE,
+               circle = TRUE,
+               ellipse.prob = 0.68)
+ g
+
+trg <- predict(pc, training)
+trg <- data.frame(trg, training[length(sessionNthFrameTotal[1,])])
+tst <- predict(pc, testing)
+tst <- data.frame(tst, testing[length(sessionNthFrameTotal[1,])])
+#install.packages("nnet")
+var_explained = pc$sdev^2 / sum(pc$sdev^2)
+
+#create scree plot
+
+ qplot(c(1:length(var_explained)), var_explained) + 
+   geom_line() + 
+   xlab("Principal Component") + 
+   ylab("Variance Explained") +
+   ggtitle("Scree Plot") +
+   ylim(0, 1)
+
+multinom <- multinom(feedList~PC1+PC2+PC3+PC4+PC5+PC6+PC7, data = trg)
+ glm<-glm(feedList~PC1+PC2+PC3+PC4+PC5+PC6+PC7, data = trg)
+
+summary(multinom)
+p1 <- predict(multinom, tst)
+tab1 <- table(p1, tst$feedList)
+tab1
+newMisclassification<-1-sum(diag(tab1))/sum(tab1)
+#print(newMisclassification)
+newMisclassification
+```
+
+
+# 2f Exploratory Analysis - Learning -  Did the Mice Learn
+Since the Mice are being rewarded with water for successful attempts, we would assume that as we go along in time for each session the mouse will have higher accuracy since it learns how to play the game. The data does not support this claim however since we can see a trend of accuracy actually going down based on the time series data. When we treat the feedback as a time series we can see that the mice had no real learning go on throughout the lesson, and they may have actually gotten tired over the course of the session. To me the graph of total feedback (sum of the positive and negative ones over time) shows that over the course of the sessions there is a general trend of the mice learning and getting a higher number of postive ones, more than the amount of negative ones, causing the line to slope up. however at some points the mouse appears to get bored and thier learning or attention span begins to taper off. As the total tally of ones and negative ones, (every third graph in the series) below shows us that in general the mice get more and more correct answers but sometimes they taper off, commonly either at the middle or the end, and this could be them getting tired or losing focus. 
+3,4,4,7
+```{r,echo=FALSE}
+for(i in 1:18){
+  curSesh<-session[[i]]
+  numAttempts<-length(curSesh$feedback_type)
+  timeTemp<-c(1:numAttempts)
+  feedTemp<-curSesh$feedback_type
+  #plot(timeTemp, feedTemp)
+  #acf(feedTemp)
+  # ts.plot(feedTemp, 
+  #       xlab="Time", 
+  #       ylab="Accuracy",
+  #       main="Accuracy over Time")
+
+# This will fit in a line
+#abline(reg=lm(feedTemp~time(feedTemp)), col = "red")
+feedOne<-session[[i]]$feedback_type
+feedTotal<-list()
+total<-0
+for( i in 1:length(feedOne)){
+  
+  feedTotal[i]<-total
+  total = total + feedOne[i]
+}
+plot(timeTemp,feedTotal)
+# tsData <- feedTemp # ts data
+# decomposedRes <- decompose(tsData, type="mult")
+# decomposedResAdd <- decompose(tsData, type="additive")
+# 
+# # use type = "additive" for additive components
+# plot (decomposedRes) # see plot below
+# plot (decomposedResAdd) # see plot below
+
+}
+feedOne<-session[[1]]$feedback_type
+feedTotal<-list()
+spikeTotal<-list()
+total<-0
+spikeTot<-0
+for( i in 1:length(feedOne)){
+  feedTotal[i]<-total
+  spikeTotal[i]<-total
+  total = total + feedOne[i]
+}
+```
+
+# 5a Testing The Test Data
+```{r,echo=FALSE}
+test1<-readRDS("C:/Users/samgl/Downloads/test1.rds")
+test2<-readRDS("C:/Users/samgl/Downloads/test2.rds")
+
+TESTINGwholeDataFrameForPCA<-function(data){
+currentSession<-data
+brainAreas<-currentSession$brain_area
+spikes<-currentSession$spks
+spikeOne<-spikes[[1]]
+numElec<-length(spikeOne[,1])
+rowSums<-list()
+uniqueBrainAreas<-unique(brainAreas)
+
+firstVect<-0*c(1:length(numElec))
+sessionFrame<-data.frame(firstVect)
+
+for(i in 1:length(currentSession$feedback_type)){
+sessionIsums<-list()
+for(j in 1:numElec){
+  sessionIsums[j]<-sum(currentSession$spks[[i]][j,])
+}
+sessionIsums<-data.frame(unlist(sessionIsums))
+sessionFrame<-cbind(sessionFrame,sessionIsums)
+}
+
+firstNewVect<-0*c(1:length(uniqueBrainAreas))
+newFrameByRegion<-data.frame(firstNewVect)
+indexesList<-list()
+
+for(i in 1:length(uniqueBrainAreas)){
+  indexTemp<-which(unlist(uniqueBrainAreas[i])==brainAreas)
+  indexesList[[i]]<-indexTemp
+}
+sessionFrame<-sessionFrame[,2:length(sessionFrame[1,])]
+
+newFrameByRegion<-data.frame(firstNewVect)
+for(j in 1:length(currentSession$feedback_type)){
+nthNewVect<-list()
+for(i in 1:length(uniqueBrainAreas)){
+  nthNewVect[i]<-sum(sessionFrame[,j][unlist(indexesList[[i]])])
+}
+nthNewVect<-unlist(nthNewVect)
+newFrameByRegion<-cbind(newFrameByRegion,nthNewVect)
+}
+newFrameByRegion<-newFrameByRegion[,2:length(newFrameByRegion[1,])]
+newFrameByRegion<-t(newFrameByRegion)
+names(newFrameByRegion)<-unique(brainAreas)
+
+rightCont<-list()
+leftCont<-list()
+feedList<-list()
+for(i in 1:length(currentSession$feedback_type)){
+  rightCont[i]<-currentSession$contrast_right[i]
+  leftCont[i]<-currentSession$contrast_left[i]
+  feedList[i]<-currentSession$feedback_type[i]
+}
+rightCont<-unlist(rightCont)
+leftCont<-unlist(leftCont)
+contCoef<-rightCont*leftCont
+feedList<-unlist(feedList)
+previousFrame<-data.frame(rightCont,leftCont,contCoef,feedList)
+
+colnames(newFrameByRegion)<-unique(brainAreas)
+head(newFrameByRegion)
+totalNewFrame<-cbind(newFrameByRegion,previousFrame)
+head(totalNewFrame)
+return(totalNewFrame)}
+
+
+test1Frame<-TESTINGwholeDataFrameForPCA(test1)
+test2Frame<-TESTINGwholeDataFrameForPCA(test2)
+
+library('corrr')
+library(ggcorrplot)
+library(FactoMineR)
+library(psych)
+library(devtools)
+library(ggbiplot)
+library(nnet)
+library(ggplot2)
+
+train1Frame<-wholeDataFrameForPCA(1)
+train2Frame<-wholeDataFrameForPCA(18)
+test1Frame<-TESTINGwholeDataFrameForPCA(test1)
+test2Frame<-TESTINGwholeDataFrameForPCA(test2)
+
+
+# Test 1 from Session 1
+
+training1 <- data.frame(train1Frame)
+testing1 <- data.frame(test1Frame)
+ 
+pc1<-prcomp(training[,-length(sessionNthFrameTotal[1,])])
+
+
+trg1 <- predict(pc, training)
+trg1 <- data.frame(trg1, training[length(training1[1,])])
+tst1 <- predict(pc, testing)
+tst1 <- data.frame(tst1, testing[length(sessionNthFrameTotal[1,])])
+
+#create scree plot
+
+ qplot(c(1:length(var_explained)), var_explained) + 
+   geom_line() + 
+   xlab("Principal Component") + 
+   ylab("Variance Explained") +
+   ggtitle("Scree Plot") +
+   ylim(0, 1)
+
+multinom1 <- multinom(feedList~PC1+PC2+PC3+PC4+PC5+PC6+PC7, data = trg1)
+
+summary(multinom)
+
+p1of1 <- predict(multinom1, tst1)
+tab1of1 <- table(p1of1, tst1$feedList)
+tab1of1
+newMisclassification1<-1-sum(diag(tab1of1))/sum(tab1of1)
+#print(newMisclassification)
+newMisclassification1
+
+# Test 2 from Session 18
+
+training18 <- data.frame(train2Frame)
+testing18 <- data.frame(test2Frame)
+ 
+pc18<-prcomp(training18[,-length(sessionNthFrameTotal[1,])])
+
+
+trg18 <- predict(pc18, training18)
+trg18 <- data.frame(trg18, training18[length(training18[1,])])
+tst18 <- predict(pc18, testing18)
+tst18 <- data.frame(tst18, testing18[length(testing18[1,])])
+
+#create scree plot
+
+ qplot(c(1:length(var_explained)), var_explained) + 
+   geom_line() + 
+   xlab("Principal Component") + 
+   ylab("Variance Explained") +
+   ggtitle("Scree Plot") +
+   ylim(0, 1)
+
+multinom18 <- multinom(feedList~PC1+PC2+PC3+PC4+PC5+PC6+PC7, data = trg18)
+
+summary(multinom18)
+p1of18 <- predict(multinom18, tst18)
+tab1of18 <- table(p1of18, tst18$feedList)
+tab1of18
+newMisclassification18<-1-sum(diag(tab1of18))/sum(tab1of18)
+#print(newMisclassification)
+newMisclassification18
+
+```
+## Appendix {-}
+\begin{center} Appendix: R Script \end{center}
+
+```{r, ref.label=knitr::all_labels(),echo=TRUE,eval=FALSE}
+```
